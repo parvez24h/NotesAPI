@@ -10,7 +10,7 @@ const SECRET_KEY = process.env.SECRET_KEY;
 
 const signup = async(req, res)=>{
 
-    const {username, email, password} = req.body;
+    const {username, email, password, image} = req.body;
 
     try {
 
@@ -25,7 +25,8 @@ const signup = async(req, res)=>{
         const result = await userModel.create({
             username: username,
             email: email,
-            password: hashedPassword
+            password: hashedPassword,
+            image: image
         });
 
 
@@ -83,4 +84,66 @@ const signin = async(req, res)=>{
 
 }
 
-module.exports = { signup, signin }
+const userUpdate = async(req, res)=>{
+
+    const id = req.params.id;
+    const {username, email, image} = req.body;
+
+    try {
+
+        const existingUser = await userModel.findOne({ email: email });
+
+        if(!existingUser){
+            return res.status(400).json({message: "User Not Found!!"});
+        }
+
+        const updateUser = {
+            username: username,
+            email: existingUser.email,
+            password: existingUser.password,
+            image: image
+
+        }
+
+        
+        await userModel.findByIdAndUpdate(id, updateUser, {new : true});
+
+        res.status(200).json(updateUser);
+
+
+    } catch (error) {
+
+        console.log(error);
+        
+        res.status(500).json({
+            message:"Something went wrong!!"
+        });
+        
+    }
+
+}
+
+const userDelete = async(req, res)=>{
+
+
+
+
+    const id = req.params.id;
+
+    try {
+        const user = await userModel.findByIdAndDelete(id);
+
+        res.status(202).json(user);
+
+    } catch (error) {
+        console.log(error);
+
+        res.status(500).json({message : "Something went wrong!!"});
+        
+    }
+
+}
+
+
+
+module.exports = { signup, signin, userUpdate, userDelete }
